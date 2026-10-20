@@ -47,7 +47,7 @@
 │   ├── Sparkles.tsx             # Hạt lấp lánh bokeh
 │   ├── Typewriter.tsx           # Hiệu ứng gõ chữ các thông điệp yêu thương
 │   ├── Lightbox.tsx             # Xem ảnh lớn, vuốt cảm ứng mobile, slideshow
-│   ├── MusicToggle.tsx          # Bật/tắt nhạc nền + Web Audio chime dự phòng
+│   ├── MusicToggle.tsx          # Tự phát nhạc nền, chờ tương tác nếu trình duyệt chặn + Web Audio chime dự phòng
 │   └── FooterSection.tsx        # Trích dẫn và lời chúc kết
 ├── config/
 │   └── site.ts                  # File cấu hình trung tâm (tùy biến chữ, tên, màu sắc)

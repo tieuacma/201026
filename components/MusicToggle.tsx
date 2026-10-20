@@ -10,6 +10,7 @@ export function MusicToggle() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const autoplayPendingRef = useRef(false);
   const synthTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -103,20 +104,47 @@ export function MusicToggle() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    let isMounted = true;
 
-    audio.play()
-      .then(() => {
-        setIsPlaying(true);
-        setHasError(false);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "NotAllowedError") {
-          return;
-        }
+    const startPlayback = () => {
+      audio.play()
+        .then(() => {
+          if (!isMounted) {
+            audio.pause();
+            return;
+          }
+          autoplayPendingRef.current = false;
+          setIsPlaying(true);
+          setHasError(false);
+        })
+        .catch((error: unknown) => {
+          if (!isMounted) return;
+          if (error instanceof DOMException && error.name === "NotAllowedError") {
+            autoplayPendingRef.current = true;
+            return;
+          }
 
-        console.warn("Không thể tự phát nhạc nền:", error);
-        setHasError(true);
-      });
+          console.warn("Không thể tự phát nhạc nền:", error);
+          setHasError(true);
+        });
+    };
+
+    const handleUserInteraction = () => {
+      if (autoplayPendingRef.current) {
+        startPlayback();
+      }
+    };
+
+    document.addEventListener("pointerdown", handleUserInteraction);
+    document.addEventListener("keydown", handleUserInteraction);
+    startPlayback();
+
+    return () => {
+      isMounted = false;
+      autoplayPendingRef.current = false;
+      document.removeEventListener("pointerdown", handleUserInteraction);
+      document.removeEventListener("keydown", handleUserInteraction);
+    };
   }, []);
 
   useEffect(() => {
@@ -135,7 +163,8 @@ export function MusicToggle() {
         ref={audioRef}
         src={audioSrc}
         loop
-        preload="none"
+        autoPlay
+        preload="auto"
         onError={() => {
           setHasError(true);
         }}
