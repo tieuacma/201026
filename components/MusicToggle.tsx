@@ -101,6 +101,25 @@ export function MusicToggle() {
   };
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.play()
+      .then(() => {
+        setIsPlaying(true);
+        setHasError(false);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "NotAllowedError") {
+          return;
+        }
+
+        console.warn("Không thể tự phát nhạc nền:", error);
+        setHasError(true);
+      });
+  }, []);
+
+  useEffect(() => {
     return () => {
       stopSynth();
       if (audioContextRef.current) {
