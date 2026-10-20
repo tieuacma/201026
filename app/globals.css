@@ -1,26 +1,207 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-handwriting: var(--font-dancing-script), cursive;
+  --font-sans: var(--font-be-vietnam-pro), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  background-color: #fff0f3;
+  background-image: radial-gradient(at 0% 0%, #fff5f7 0px, transparent 50%),
+                    radial-gradient(at 100% 0%, #fce7f3 0px, transparent 50%),
+                    radial-gradient(at 50% 100%, #ffe4e6 0px, transparent 50%);
+  color: #1f2937;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-be-vietnam-pro), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.font-handwriting {
+  font-family: var(--font-dancing-script), cursive;
+}
+
+/* Tùy chỉnh thanh cuộn đẹp mắt màu hoa hồng */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #fff0f3;
+}
+::-webkit-scrollbar-thumb {
+  background: #f472b6;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #db2777;
+}
+
+/* Hiệu ứng phong thư 3D */
+.envelope-shadow {
+  box-shadow: 0 25px 50px -12px rgba(244, 63, 94, 0.3), 0 10px 25px -5px rgba(225, 29, 72, 0.2);
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Clip paths cho các nắp phong thư vật lý chân thực */
+.clip-flap-top {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.clip-flap-left {
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.clip-flap-right {
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.clip-flap-bottom {
+  clip-path: polygon(0 100%, 50% 38%, 100% 100%);
+}
+
+/* Thẻ Polaroid với bóng đổ tinh tế */
+.polaroid-card {
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.polaroid-card:hover {
+  box-shadow: 0 22px 35px -8px rgba(244, 63, 94, 0.3);
+  z-index: 30;
+}
+
+/* Hiệu ứng viền phát sáng nhẹ */
+.glow-pink {
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.35);
+}
+
+.glow-gold {
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.45);
+}
+
+/* Viền răng cưa & tem thư bưu điện */
+.postage-stamp {
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.12);
+  border: 1px dashed rgba(244, 63, 94, 0.4);
+}
+
+/* Băng keo Washi dán góc siêu đáng yêu */
+.washi-tape-pink {
+  background: linear-gradient(135deg, rgba(254, 205, 211, 0.85) 0%, rgba(253, 164, 175, 0.75) 100%);
+  border-top: 1px dashed rgba(244, 63, 94, 0.4);
+  border-bottom: 1px dashed rgba(244, 63, 94, 0.4);
+  box-shadow: 0 2px 6px rgba(244, 63, 94, 0.15);
+  backdrop-filter: blur(2px);
+}
+
+.washi-tape-gold {
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.85) 0%, rgba(253, 230, 138, 0.75) 100%);
+  border-top: 1px dashed rgba(217, 119, 6, 0.4);
+  border-bottom: 1px dashed rgba(217, 119, 6, 0.4);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+  backdrop-filter: blur(2px);
+}
+
+/* Con dấu sáp nhịp tim phát sáng */
+.wax-seal-pulse {
+  animation: wax-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes wax-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5), 0 10px 25px -4px rgba(225, 29, 72, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(244, 63, 94, 0), 0 16px 30px -4px rgba(225, 29, 72, 0.6);
+    transform: scale(1.03);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Hiệu ứng chữ ánh kim lấp lánh (Shimmer Text) */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #be123c 0%,
+    #f43f5e 25%,
+    #fbbf24 50%,
+    #f43f5e 75%,
+    #be123c 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: text-shimmer 4s linear infinite;
+}
+
+/* Con bướm vỗ cánh mềm mại */
+@keyframes flutter-left {
+  0%, 100% {
+    transform: rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: rotateY(70deg) scale(0.9);
+  }
+}
+
+@keyframes flutter-right {
+  0%, 100% {
+    transform: rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: rotateY(-70deg) scale(0.9);
+  }
+}
+
+.butterfly-wing-left {
+  transform-origin: right center;
+  animation: flutter-left 0.22s ease-in-out infinite;
+}
+
+.butterfly-wing-right {
+  transform-origin: left center;
+  animation: flutter-right 0.22s ease-in-out infinite;
+}
+
+/* Hiệu ứng mũi tên nảy ngang mời gọi */
+@keyframes bounce-x {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-bounce-x {
+  animation: bounce-x 1.2s ease-in-out infinite;
+}
+
+/* Ẩn thanh cuộn cho thumbnail strip nhưng vẫn cho phép cuộn */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

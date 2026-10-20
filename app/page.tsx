@@ -1,69 +1,160 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ParticleEffect } from "@/components/ParticleEffect";
+import { MusicToggle } from "@/components/MusicToggle";
+import { UploadScreen, UploadedPhoto } from "@/components/UploadScreen";
+import { Envelope } from "@/components/Envelope";
+import { CelebrationCard } from "@/components/CelebrationCard";
+import { loadPhotosFromDb, savePhotosToDb, deletePhotoFromDb, StoredPhoto } from "@/lib/db";
+
+type AppStep = "upload" | "envelope" | "celebrate";
+
+export default function HomePage() {
+  const [step, setStep] = useState<AppStep>("upload");
+  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+  const [recipientName, setRecipientName] = useState<string>("");
+  const photosRef = useRef<UploadedPhoto[]>([]);
+
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+
+  // Tải tên người nhận đã lưu từ localStorage khi khởi động
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedRecip = localStorage.getItem("2010_recipient_name");
+      if (savedRecip) setRecipientName(savedRecip);
+    }
+  }, []);
+
+  const handleUpdateRecipientName = (name: string) => {
+    setRecipientName(name);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("2010_recipient_name", name);
+    }
+  };
+
+  // Tải ảnh từ IndexedDB nếu người dùng đã tải trước đó (giúp F5 không bị mất)
+  useEffect(() => {
+    let ignore = false;
+    loadPhotosFromDb()
+      .then((res) => {
+        if (!ignore && res.photos.length > 0) {
+          const mapped: UploadedPhoto[] = res.photos.map((p) => ({
+            id: p.id,
+            url: URL.createObjectURL(p.blob),
+            name: p.name,
+            blob: p.blob,
+            width: p.width,
+            height: p.height,
+            timestamp: p.timestamp,
+          }));
+          setPhotos(mapped);
+        }
+      })
+      .catch((e) => {
+        console.error("Lỗi đọc IndexedDB:", e);
+      });
+
+    // Giải phóng tất cả Object URL khi component unmount
+    return () => {
+      ignore = true;
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, []);
+
+  // Thêm ảnh mới
+  const handleAddPhotos = (newItems: UploadedPhoto[]) => {
+    const updated = [...newItems, ...photos];
+    setPhotos(updated);
+
+    // Đồng bộ vào IndexedDB chạy nền
+    const stored: StoredPhoto[] = updated.map((p) => ({
+      id: p.id,
+      blob: p.blob,
+      name: p.name,
+      timestamp: Date.now(),
+      width: p.width,
+      height: p.height,
+    }));
+    savePhotosToDb(stored);
+  };
+
+  // Xóa ảnh
+  const handleRemovePhoto = (id: string) => {
+    const target = photos.find((p) => p.id === id);
+    if (target) {
+      URL.revokeObjectURL(target.url);
+    }
+    const updated = photos.filter((p) => p.id !== id);
+    setPhotos(updated);
+    deletePhotoFromDb(id);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="relative min-h-screen overflow-x-hidden selection:bg-rose-200">
+      {/* 1. Hiệu ứng nền liên tục: Hoa anh đào rơi, Hạt lấp lánh & Chạm bung tim */}
+      <ParticleEffect />
+
+      {/* 2. Nút bật/tắt nhạc nền */}
+      <MusicToggle />
+
+      {/* 3. Luồng trải nghiệm 3 bước ngọt ngào (User Flow) */}
+      <AnimatePresence mode="wait">
+        {step === "upload" && (
+          <motion.div
+            key="step-upload"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+            <UploadScreen
+              photos={photos}
+              recipientName={recipientName}
+              onUpdateRecipientName={handleUpdateRecipientName}
+              onAddPhotos={handleAddPhotos}
+              onRemovePhoto={handleRemovePhoto}
+              onProceedToLetter={() => setStep("envelope")}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </motion.div>
+        )}
+
+        {step === "envelope" && (
+          <motion.div
+            key="step-envelope"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.6 }}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <Envelope
+              photoCount={photos.length}
+              recipientName={recipientName}
+              onOpenComplete={() => setStep("celebrate")}
+              onBackToUpload={() => setStep("upload")}
+            />
+          </motion.div>
+        )}
+
+        {step === "celebrate" && (
+          <motion.div
+            key="step-celebrate"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.7 }}
+          >
+            <CelebrationCard
+              photos={photos}
+              recipientName={recipientName}
+              onBackToUpload={() => setStep("upload")}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
